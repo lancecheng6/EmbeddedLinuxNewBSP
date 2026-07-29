@@ -1,0 +1,2 @@
+# Key-only authentication (use RSA key)
+PasswordAuthentication no

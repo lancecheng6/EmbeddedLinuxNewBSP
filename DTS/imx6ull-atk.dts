@@ -1,0 +1,79 @@
+// SPDX-License-Identifier: (GPL-2.0 OR MIT)
+//
+// ATK-IMX6U 最小系統 Device Tree
+// 僅啟用：UART、eMMC、乙太網（ENET2）
+// 基底：NXP i.MX6ULL 14x14 EVK + 硬體接線文件
+//
+// 學習筆記：
+//   &label {}  = 覆蓋或擴充 dtsi 中已定義的節點
+//   status     = "okay" 啟用，"disabled" 停用
+//   pinctrl-0  = 指向此裝置使用的腳位配置群組
+
+/dts-v1/;
+
+#include "imx6ull.dtsi"
+#include "imx6ul-14x14-evk.dtsi"
+#include "imx6ull-pinfunc-snvs.h"
+
+/ {
+	model = "ATK-IMX6U Board";
+	compatible = "fsl,imx6ull-14x14-evk", "fsl,imx6ull";
+
+	chosen {
+		stdout-path = &uart1;
+	};
+};
+
+/* 序列埠（UART1 / ttymxc0 / COM7） */
+&uart1 {
+	status = "okay";
+};
+
+/* eMMC（usdhc2 = mmcblk1） */
+&usdhc2 {
+	status = "okay";
+	non-removable;
+};
+
+/* ─────────── 乙太網 ─────────── */
+// 基底以 imx6ul-14x14-evk.dtsi 為準，此處僅補上差異：
+//   fec1（ENET1）→ ethphy0（reg=2）→ PHY2
+//   fec2（ENET2）→ ethphy1（reg=1）→ PHY1
+//
+// PHY1：SR8201F、Reset GPIO5_IO08（SNVS_TAMPER8, ball N9）
+// PHY2：SR8201F、Reset GPIO5_IO07（SNVS_TAMPER7, ball N10）
+
+&fec1 {
+	phy-reset-gpios = <&gpio5 7 GPIO_ACTIVE_LOW>;
+	phy-reset-duration = <200>;
+};
+
+&fec2 {
+	phy-reset-gpios = <&gpio5 8 GPIO_ACTIVE_LOW>;
+	phy-reset-duration = <200>;
+};
+
+/* 將 PHY 型號從 KSZ8081 改為 SR8201F */
+&ethphy0 {
+	compatible = "ethernet-phy-id0011.0140";
+};
+
+&ethphy1 {
+	compatible = "ethernet-phy-id0011.0140";
+};
+
+/* SNVS 腳位控制器：定義 PHY reset 腳位的 GPIO 模式 */
+&iomuxc_snvs {
+	pinctrl_fec1_reset: fec1_resetgrp {
+		fsl,pins = <MX6ULL_PAD_SNVS_TAMPER8__GPIO5_IO08 0x79>;
+	};
+
+	pinctrl_fec2_reset: fec2_resetgrp {
+		fsl,pins = <MX6ULL_PAD_SNVS_TAMPER7__GPIO5_IO07 0x79>;
+	};
+};
+
+/* 關閉 spi-4（bitbang SPI），它佔用了 PHY reset 用的 GPIO5_IO07/IO08 */
+&{/spi-4} {
+	status = "disabled";
+};

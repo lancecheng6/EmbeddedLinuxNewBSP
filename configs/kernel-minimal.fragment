@@ -1,0 +1,69 @@
+# === KEEP: Essential for boot ===
+CONFIG_SERIAL_IMX=y
+CONFIG_SERIAL_IMX_CONSOLE=y
+CONFIG_MMC=y
+CONFIG_MMC_SDHCI=y
+CONFIG_MMC_SDHCI_PLTFM=y
+CONFIG_MMC_SDHCI_ESDHC_IMX=y
+CONFIG_MMC_BLOCK=y
+CONFIG_EXT4_FS=y
+CONFIG_CLK_IMX6UL=y
+CONFIG_PINCTRL_IMX6UL=y
+CONFIG_PRINTK=y
+CONFIG_EARLY_PRINTK=y
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+
+# === REMOVE: All unnecessary subsystems ===
+# CONFIG_NET is not set
+# CONFIG_INET is not set
+# CONFIG_DRM is not set
+# CONFIG_FB is not set
+# CONFIG_BACKLIGHT_CLASS_DEVICE is not set
+# CONFIG_USB is not set
+# CONFIG_USB_SUPPORT is not set
+# CONFIG_SOUND is not set
+# CONFIG_SND is not set
+# CONFIG_MEDIA_SUPPORT is not set
+# CONFIG_WATCHDOG is not set
+# CONFIG_IMX2_WDT is not set
+# CONFIG_BT is not set
+# CONFIG_WIRELESS is not set
+# CONFIG_WLAN is not set
+# CONFIG_RFKILL is not set
+# CONFIG_CAN is not set
+# CONFIG_INPUT is not set
+# CONFIG_VT is not set
+# CONFIG_GPU_IPUV3 is not set
+# CONFIG_MXC_IPU_V3 is not set
+# CONFIG_VIDEO_IMX_MEDIA is not set
+# CONFIG_VIDEOBUF2_CORE is not set
+# CONFIG_V4L_PLATFORM_DRIVERS is not set
+# CONFIG_REGULATOR_ANATOP is not set
+# CONFIG_IMX_THERMAL is not set
+# CONFIG_CPU_THERMAL is not set
+# CONFIG_CPU_FREQ is not set
+# CONFIG_CPU_IDLE is not set
+# CONFIG_SUSPEND is not set
+# CONFIG_HIBERNATION is not set
+# CONFIG_PM is not set
+# CONFIG_RTC_CLASS is not set
+# CONFIG_DMA_ENGINE is not set
+# CONFIG_DMATEST is not set
+# CONFIG_SPI is not set
+# CONFIG_SPI_IMX is not set
+# CONFIG_I2C is not set
+# CONFIG_I2C_IMX is not set
+# CONFIG_HDMI is not set
+# CONFIG_LCD_CLASS_DEVICE is not set
+# CONFIG_MXC_IPU is not set
+# CONFIG_FB_MXC is not set
+# CONFIG_INPUT_TOUCHSCREEN is not set
+# CONFIG_INPUT_MISC is not set
+# CONFIG_LEDS_CLASS is not set
+# CONFIG_STAGING is not set
+# CONFIG_SWAP is not set
+# CONFIG_NFS_FS is not set
+# CONFIG_CIFS is not set
+# CONFIG_NETWORK_FILESYSTEMS is not set
+# CONFIG_PARTITION_ADVANCED is not set

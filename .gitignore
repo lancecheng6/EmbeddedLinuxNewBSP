@@ -1,0 +1,13 @@
+*.o
+*.cmd
+*.dtb
+*.img
+*.ko
+*.mod
+*.mod.c
+*.order
+*.symvers
+*.tmp
+tmp/
+*.bak
+*.orig
