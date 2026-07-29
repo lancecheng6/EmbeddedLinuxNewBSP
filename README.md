@@ -1,7 +1,6 @@
 # ATK-IMX6U Embedded Linux BSP
 
-A minimal embedded Linux system for the ATK-IMX6U board (RightPoint Atom / 正点原子),
-built with Buildroot and the NXP i.MX6ULL BSP.
+A minimal embedded Linux system for the ATK-IMX6U board, built with Buildroot and the NXP i.MX6ULL BSP.
 
 ## Hardware
 
