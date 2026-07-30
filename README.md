@@ -35,6 +35,7 @@ GitHubUpload/
 │   ├── atk_imx6u_min_defconfig         Buildroot config (toolchain + Dropbear)
 │   ├── kernel-minimal.fragment         Kernel config fragment
 │   ├── usb.fragment                    USB host config fragment
+│   ├── imximage_NT5CC256M16EP_EK.cfg   U-Boot DCD for Nanya DDR3L-1866
 │   └── rootfs-overlay/                 Rootfs overlay (hostname, network, SSH keys)
 ├── scripts/
 │   ├── build_kernel.sh              Build kernel + DTBs
@@ -47,7 +48,9 @@ GitHubUpload/
 │   ├── DevLog_20260728.md             English dev log (Day 2: SSH + USB)
 │   ├── 歷程紀錄_20260728.md            Chinese dev log (Day 2)
 │   ├── DevLog_20260729.md             English dev log (Day 3: UART3 + RS-485)
-│   └── 歷程紀錄_20260729.md            Chinese dev log (Day 3)
+│   ├── 歷程紀錄_20260729.md            Chinese dev log (Day 3)
+│   ├── DevLog_20260730.md             English dev log (Day 4: DDR3L + U-Boot DCD)
+│   └── 歷程紀錄_20260730.md            Chinese dev log (Day 4)
 └── hardware/
     ├── imx6ull-sr8201f-interface.md  Ethernet PHY wiring doc
     └── pinmux.md                     Pin function table + PHY address map
@@ -182,6 +185,7 @@ This project was built incrementally across multiple development sessions:
 | Jul 27 | Initial BSP: minimal kernel, Buildroot rootfs, ENET2 + UART1 + eMMC |
 | Jul 28 | DTS debugging: dual ENET with SR8201F PHY + SSH setup + USB host enablement |
 | Jul 29 | UART3 integration with TP8485E RS-485 + DTB deployment debug |
+| Jul 30 | DDR3L timing analysis + U-Boot DCD config for NT5CC256M16EP-EK |
 
 See the `docs/` folder for detailed development logs. Each session documents the
 problems encountered and the solutions implemented.
