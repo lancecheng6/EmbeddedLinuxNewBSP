@@ -68,6 +68,18 @@ Each PHY's address is set by hardware straps on pins 24-25.
 | UART1_TXD      | J15  | →   |
 | UART1_RXD      | J16  | ←   |
 
+## RS-485 (UART3 = ttymxc2)
+
+UART3 is connected to a TP8485E RS-485 transceiver via an auto-direction inverter circuit.
+
+| i.MX6ULL Signal | Ball (14×14) | Dir | TP8485E Pin | Pin Name | Description |
+|----------------|-------------|-----|-------------|----------|-------------|
+| UART3_TX_DATA  | H17         | →   | 4           | DI       | Driver input (SoC → RS-485) |
+| UART3_RX_DATA  | H16         | ←   | 1           | RO       | Receiver output (RS-485 → SoC) |
+
+> **Note:** UART3 TX/RX pins (H16/H17) were previously claimed as UART2 RTS/CTS in the default dtsi.
+> The DTS overrides `pinctrl_uart2` to remove the RTS/CTS entries, freeing these pins for UART3.
+
 ## eMMC
 
 | i.MX6ULL Signal | Description |

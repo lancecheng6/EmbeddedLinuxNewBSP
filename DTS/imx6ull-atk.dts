@@ -35,6 +35,20 @@
 	non-removable;
 };
 
+/* UART2（ttymxc1）：移除 RTS/CTS 以釋放腳位給 UART3 */
+&uart2 {
+	/delete-property/ uart-has-rtscts;
+};
+
+/* UART3（ttymxc2）：TP8485E RS-485 */
+&uart3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart3>;
+	/delete-property/ dmas;
+	/delete-property/ dma-names;
+	status = "okay";
+};
+
 /* ─────────── 乙太網 ─────────── */
 // 基底以 imx6ul-14x14-evk.dtsi 為準，此處僅補上差異：
 //   fec1（ENET1）→ ethphy0（reg=2）→ PHY2
@@ -76,4 +90,21 @@
 /* 關閉 spi-4（bitbang SPI），它佔用了 PHY reset 用的 GPIO5_IO07/IO08 */
 &{/spi-4} {
 	status = "disabled";
+};
+
+/* IOMUX：UART2（移除 RTS/CTS 腳位）+ UART3 腳位配置 */
+&iomuxc {
+	pinctrl_uart2: uart2grp {
+		fsl,pins = <
+			MX6UL_PAD_UART2_TX_DATA__UART2_DCE_TX	0x1b0b1
+			MX6UL_PAD_UART2_RX_DATA__UART2_DCE_RX	0x1b0b1
+		>;
+	};
+
+	pinctrl_uart3: uart3grp {
+		fsl,pins = <
+			MX6UL_PAD_UART3_TX_DATA__UART3_DCE_TX	0x1b0b1
+			MX6UL_PAD_UART3_RX_DATA__UART3_DCE_RX	0x1b0b1
+		>;
+	};
 };

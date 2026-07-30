@@ -11,6 +11,7 @@ A minimal embedded Linux system for the ATK-IMX6U board, built with Buildroot an
 | **Storage** | 8GB eMMC (mmcblk1) |
 | **Ethernet** | SR8201F PHY via RMII (ENET1 + ENET2) |
 | **Serial** | UART1 (ttymxc0), 115200 baud |
+| **RS-485** | TP8485E via UART3 (ttymxc2), auto direction control |
 | **Boot** | U-Boot 2016.03 → eMMC |
 
 ## Software Stack
@@ -27,7 +28,7 @@ A minimal embedded Linux system for the ATK-IMX6U board, built with Buildroot an
 ```
 GitHubUpload/
 ├── DTS/
-│   └── imx6ull-atk.dts              Custom Device Tree (UART + eMMC + dual FEC)
+│   └── imx6ull-atk.dts              Custom Device Tree (UARTs + eMMC + dual FEC + UART3)
 ├── configs/
 │   ├── kernel_defconfig/
 │   │   └── kernel_atk_imx6u_defconfig  Minimal kernel config (incl. USB host)
@@ -44,7 +45,9 @@ GitHubUpload/
 │   ├── DevLog_20260727.md           English dev log (Day 1)
 │   ├── 歷程紀錄_20260727.md          Chinese dev log (Day 1)
 │   ├── DevLog_20260728.md             English dev log (Day 2: SSH + USB)
-│   └── 歷程紀錄_20260728.md            Chinese dev log (Day 2)
+│   ├── 歷程紀錄_20260728.md            Chinese dev log (Day 2)
+│   ├── DevLog_20260729.md             English dev log (Day 3: UART3 + RS-485)
+│   └── 歷程紀錄_20260729.md            Chinese dev log (Day 3)
 └── hardware/
     ├── imx6ull-sr8201f-interface.md  Ethernet PHY wiring doc
     └── pinmux.md                     Pin function table + PHY address map
@@ -125,6 +128,22 @@ sync
 
 Reset the board. U-Boot loads `fdt_file=imx6ull-atk.dtb` automatically.
 
+## Hardware Peripherals
+
+### RS-485 (UART3)
+
+UART3 is connected to a TP8485E RS-485 transceiver with automatic direction control:
+
+```bash
+# UART3 appears as /dev/ttymxc2
+stty -F /dev/ttymxc2 115200
+
+# Test loopback
+echo "test" > /dev/ttymxc2
+```
+
+The direction is handled by an inverter between TXD and RE/DE pins — no GPIO required.
+
 ## Post-Boot
 
 ### Network Configuration
@@ -160,9 +179,9 @@ This project was built incrementally across multiple development sessions:
 
 | Date | Milestone |
 |------|-----------|
-| Jul 27 | Initial BSP: minimal kernel, Buildroot rootfs, ENET2 + UART + eMMC |
-| Jul 28 | DTS debugging: dual ENET with SR8201F PHY (gpio-hog + spi-4 fixes) |
-| Jul 29 | SSH/Dropbear setup + BusyBox symlink repair + USB host enablement |
+| Jul 27 | Initial BSP: minimal kernel, Buildroot rootfs, ENET2 + UART1 + eMMC |
+| Jul 28 | DTS debugging: dual ENET with SR8201F PHY + SSH setup + USB host enablement |
+| Jul 29 | UART3 integration with TP8485E RS-485 + DTB deployment debug |
 
 See the `docs/` folder for detailed development logs. Each session documents the
 problems encountered and the solutions implemented.
@@ -171,4 +190,5 @@ problems encountered and the solutions implemented.
 
 - MAC address is random (OCOTP fuses not accessible in current setup)
 - USB is limited to USB 2.0 (EHCI); USB 3.0 is not supported on this SoC
+- UART2 RTS/CTS pins were removed to free pins for UART3 (no hardware flow control on UART2)
 - Power management features are disabled in the kernel config
