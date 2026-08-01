@@ -320,3 +320,32 @@ RXD[1:0] ══════╗  ╔═[DATA]═╗  ╔════════�
                                     │ + Magn. │
                                     └─────────┘
 ```
+
+---
+
+## 5. PHY Identifier (Verified on Hardware)
+
+**SR8201F PHY ID = `0x001C_C816`** — measured over MDIO and confirmed against
+the datasheet (SR8201F_VB, Table 13/14):
+
+| Register | Field | Datasheet Default | Measured |
+|----------|-------|:-----------------:|:--------:|
+| reg2 (PHYID1) | OUI[21:6] | `0x001C` | `0x001C` ✅ |
+| reg3 (PHYID2) | OUI_LSB + Model + Rev | `110010_000001_0110` | `0xC816` ✅ |
+
+> **Note:** the Linux FEC driver reports `0x00110140`, which does NOT match the
+> datasheet value. Functionality is unaffected (generic PHY driver is used),
+> but the datasheet is the authoritative reference.
+
+## 6. MDIO / MDC IOMUX PAD Configuration (Verified)
+
+| Pad | SW_PAD_CTL Register | Value | Meaning |
+|-----|---------------------|-------|---------|
+| GPIO1_IO06 (MDIO) | `0x020E0300` | `0x1b0b0` | SPEED=3, **ODE=1 (open-drain)**, DSE=2, PUS=3 |
+| GPIO1_IO07 (MDC) | `0x020E0304` | `0x1b0b0` | SPEED=3, DSE=2, PUS=3 |
+
+MDIO is an **open-drain bidirectional** line: `ODE=1` is required so the MAC
+releases the line and the PHY can pull it low during the read turnaround and
+data phase. (In U-Boot, the default pin-mux is already `ALT1 = ENET2_MDIO/MDC`
+at reset, but the PAD must be configured with `0x1b0b0` — the pinctrl group in
+the official dtsi already does this.)

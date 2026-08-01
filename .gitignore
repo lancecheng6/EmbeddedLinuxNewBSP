@@ -1,5 +1,6 @@
 *.o
 *.cmd
+!scripts/uuu_recover_boot0.cmd
 *.dtb
 *.img
 *.ko

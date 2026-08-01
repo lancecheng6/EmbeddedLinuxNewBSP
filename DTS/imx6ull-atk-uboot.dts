@@ -1,0 +1,123 @@
+// SPDX-License-Identifier: (GPL-2.0 OR MIT)
+//
+// ATK-IMX6U U-Boot Device Tree
+// ============================
+// This is the U-Boot-specific DTS (embedded into u-boot-dtb.imx).
+// NOTE: U-Boot and Linux use INDEPENDENT DTS ecosystems — they share the
+// same base dtsi files but have separate top-level DTS files. Changes to
+// this file do NOT affect the Linux DTB (imx6ull-atk.dts / imx6ull-atk.dtb).
+//
+// Differs from the Linux DTS:
+//   - includes "imx6ul-14x14-evk-u-boot.dtsi" (U-Boot pre-reloc markers)
+//   - fec1 disabled (workaround for the shared-MDIO-bus crash)
+//
+// Base: NXP i.MX6ULL 14x14 EVK + board wiring documentation
+//
+// Learning notes:
+//   &label {}  = override / extend a node already defined in a dtsi
+//   status     = "okay" / "disabled"
+//   pinctrl-0  = pin configuration group used by this device
+
+/dts-v1/;
+
+#include "imx6ull.dtsi"
+#include "imx6ul-14x14-evk.dtsi"
+#include "imx6ull-pinfunc-snvs.h"
+#include "imx6ul-14x14-evk-u-boot.dtsi"
+
+/ {
+	model = "ATK-IMX6U Board";
+	compatible = "fsl,imx6ull-14x14-evk", "fsl,imx6ull";
+
+	chosen {
+		stdout-path = &uart1;
+	};
+};
+
+/* UART1 (ttymxc0 / COM7) */
+&uart1 {
+	status = "okay";
+};
+
+/* eMMC (usdhc2 = mmcblk1) */
+&usdhc2 {
+	status = "okay";
+	non-removable;
+};
+
+/* UART2 (ttymxc1): remove RTS/CTS to free pins for UART3 */
+&uart2 {
+	/delete-property/ uart-has-rtscts;
+};
+
+/* UART3 (ttymxc2): TP8485E RS-485 */
+&uart3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart3>;
+	/delete-property/ dmas;
+	/delete-property/ dma-names;
+	status = "okay";
+};
+
+/* ─────────── Ethernet ─────────── */
+// Based on imx6ul-14x14-evk.dtsi, only the differences are added here:
+//   fec1 (2188000 = ENET2) → ethphy0 (reg=2)
+//   fec2 (20b4000 = ENET1) → ethphy1 (reg=1)
+//
+// Baseboard J2 PHY reset mapping (authoritative):
+//   J2_9  = SNVS_TAMPER8 (GPIO5_IO08) = ENET2_RST → fec1 (ENET2)
+//   J2_10 = SNVS_TAMPER7 (GPIO5_IO07) = ENET1_RST → fec2 (ENET1)
+
+/* fec1 (ENET2): disabled in U-Boot to avoid the shared-MDIO-bus crash */
+&fec1 {
+	status = "disabled";
+	phy-reset-gpios = <&gpio5 8 GPIO_ACTIVE_LOW>;
+	phy-reset-duration = <200>;
+};
+
+&fec2 {
+	phy-reset-gpios = <&gpio5 7 GPIO_ACTIVE_LOW>;
+	phy-reset-duration = <200>;
+};
+
+/* Change PHY model from KSZ8081 to SR8201F */
+&ethphy0 {
+	compatible = "ethernet-phy-id0011.0140";
+};
+
+&ethphy1 {
+	compatible = "ethernet-phy-id0011.0140";
+};
+
+/* SNVS pin controller: GPIO mode for the PHY reset pins */
+&iomuxc_snvs {
+	pinctrl_fec1_reset: fec1_resetgrp {
+		fsl,pins = <MX6ULL_PAD_SNVS_TAMPER8__GPIO5_IO08 0x79>;
+	};
+
+	pinctrl_fec2_reset: fec2_resetgrp {
+		fsl,pins = <MX6ULL_PAD_SNVS_TAMPER7__GPIO5_IO07 0x79>;
+	};
+};
+
+/* Disable spi-4 (bitbang SPI); it occupies GPIO5_IO07/IO08 used by PHY reset */
+&{/spi-4} {
+	status = "disabled";
+};
+
+/* IOMUX: UART2 (RTS/CTS removed) + UART3 pins */
+&iomuxc {
+	pinctrl_uart2: uart2grp {
+		fsl,pins = <
+			MX6UL_PAD_UART2_TX_DATA__UART2_DCE_TX	0x1b0b1
+			MX6UL_PAD_UART2_RX_DATA__UART2_DCE_RX	0x1b0b1
+		>;
+	};
+
+	pinctrl_uart3: uart3grp {
+		fsl,pins = <
+			MX6UL_PAD_UART3_TX_DATA__UART3_DCE_TX	0x1b0b1
+			MX6UL_PAD_UART3_RX_DATA__UART3_DCE_RX	0x1b0b1
+		>;
+	};
+};

@@ -8,6 +8,13 @@
 #     git clone --depth 1 --branch lf_v2023.04 \
 #       https://github.com/nxp-imx/uboot-imx.git
 #
+# Customizations applied on top of mx6ull_14x14_evk_defconfig
+# (see ../configs/uboot_customizations.md):
+#   - arch/arm/dts/imx6ull-atk.dts (custom board DTS, fec1 disabled)
+#   - board/freescale/mx6ullevk/imximage.cfg (Nanya DDR3L-1866 DCD)
+#   - include/configs/mx6ullevk.h (fdt_file=imx6ull-atk.dtb)
+#   - CONFIG_DEFAULT_DEVICE_TREE / CONFIG_CMD_MII / CONFIG_NET_RANDOM_ETHADDR
+#
 # Usage:
 #   export CROSS_COMPILE=/path/to/arm-linux-gnueabihf-
 #   ./build_uboot.sh

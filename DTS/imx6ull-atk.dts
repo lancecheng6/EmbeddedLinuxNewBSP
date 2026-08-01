@@ -51,19 +51,20 @@
 
 /* ─────────── 乙太網 ─────────── */
 // 基底以 imx6ul-14x14-evk.dtsi 為準，此處僅補上差異：
-//   fec1（ENET1）→ ethphy0（reg=2）→ PHY2
-//   fec2（ENET2）→ ethphy1（reg=1）→ PHY1
+//   fec1（2188000 = ENET2）→ ethphy0（reg=2）
+//   fec2（20b4000 = ENET1）→ ethphy1（reg=1）
 //
-// PHY1：SR8201F、Reset GPIO5_IO08（SNVS_TAMPER8, ball N9）
-// PHY2：SR8201F、Reset GPIO5_IO07（SNVS_TAMPER7, ball N10）
+// 原理圖（底板 J2）PHY reset 對應：
+//   J2_9  = SNVS_TAMPER8 (GPIO5_IO08) = ENET2_RST → fec1 (ENET2)
+//   J2_10 = SNVS_TAMPER7 (GPIO5_IO07) = ENET1_RST → fec2 (ENET1)
 
 &fec1 {
-	phy-reset-gpios = <&gpio5 7 GPIO_ACTIVE_LOW>;
+	phy-reset-gpios = <&gpio5 8 GPIO_ACTIVE_LOW>;
 	phy-reset-duration = <200>;
 };
 
 &fec2 {
-	phy-reset-gpios = <&gpio5 8 GPIO_ACTIVE_LOW>;
+	phy-reset-gpios = <&gpio5 7 GPIO_ACTIVE_LOW>;
 	phy-reset-duration = <200>;
 };
 
