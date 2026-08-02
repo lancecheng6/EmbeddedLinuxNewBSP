@@ -55,7 +55,9 @@ GitHubUpload/
 │   ├── DevLog_20260730.md             English dev log (Day 4: DDR3L + U-Boot DCD)
 │   ├── 歷程紀錄_20260730.md            Chinese dev log (Day 4)
 │   ├── DevLog_20260731.md             English dev log (Day 5: power chain + U-Boot net fix)
-│   └── 歷程紀錄_20260731.md            Chinese dev log (Day 5)
+│   ├── 歷程紀錄_20260731.md            Chinese dev log (Day 5)
+│   ├── DevLog_20260801.md             English dev log (Day 6: WM8960 audio + playback)
+│   └── 歷程紀錄_20260801.md            Chinese dev log (Day 6)
 └── hardware/
     ├── imx6ull-sr8201f-interface.md  Ethernet PHY wiring doc
     ├── pinmux.md                     Pin function table + PHY address map
@@ -129,6 +131,13 @@ sync
 
 # Extract rootfs to root partition (mmcblk1p2)
 mount /dev/mmcblk1p2 /mnt
+
+# IMPORTANT: clean the partition FIRST. Overlay-extracting rootfs.tar onto an
+# existing rootfs (busybox tar) silently drops symlinks (/sbin/init,
+# /sbin/getty, ...), which bricks boot with "init not found". A clean extract
+# avoids the problem. If symlinks are ever lost, rebuild them with:
+#   busybox --install -s /sbin /bin /usr/sbin /usr/bin
+rm -rf /mnt/*
 tar xf rootfs.tar -C /mnt
 sync
 ```
@@ -154,6 +163,23 @@ If the board is bricked, recover via UUU Serial Downloader
 write boot0 through the fastboot interface.
 
 ## Hardware Peripherals
+
+### Audio (WM8960)
+
+The board has a Wolfson WM8960G codec (SAI2 audio + I2C1 control):
+
+```bash
+# Play a 48 kHz WAV file through the speaker
+aplay -l                                   # card 0: atkwm8960
+amixer cset numid=52 on                    # Left Output Mixer PCM
+amixer cset numid=55 on                    # Right Output Mixer PCM
+amixer sset 'Speaker' 30%                  # volume
+aplay /root/test.wav
+```
+
+Mixer settings are restored automatically at boot (`S60alsa-state` +
+`alsactl store`). See `docs/DevLog_20260801.md` for the full study and debug
+journey (including the SAI2 MCLK direction / IOMUXC_GPR1 fix).
 
 ### RS-485 (UART3)
 
@@ -209,6 +235,7 @@ This project was built incrementally across multiple development sessions:
 | Jul 29 | UART3 integration with TP8485E RS-485 + DTB deployment debug |
 | Jul 30 | DDR3L timing analysis + U-Boot DCD config for NT5CC256M16EP-EK |
 | Jul 31 | Power chain analysis + U-Boot network fix: custom U-Boot DTS, UUU crash recovery, phy-reset cross-wiring fix, SR8201F PHY ID verified (0x001CC816), `CONFIG_NET_RANDOM_ETHADDR`, ping OK |
+| Aug 01 | WM8960 audio codec study + Linux playback: SAI2/I2C1 wiring verified, ALSA stack (fsl-sai + fsl-asoc-card + wm8960 + SDMA firmware), mixer auto-restore, `aplay` → speaker OK |
 
 See the `docs/` folder for detailed development logs. Each session documents the
 problems encountered and the solutions implemented.
@@ -222,4 +249,6 @@ problems encountered and the solutions implemented.
   workaround); both PHYs still work in Linux
 - USB is limited to USB 2.0 (EHCI); USB 3.0 is not supported on this SoC
 - UART2 RTS/CTS pins were removed to free pins for UART3 (no hardware flow control on UART2)
+- Audio: playback is verified for 48 kHz family rates (MCLK = 12.288 MHz =
+  256fs); 44.1 kHz needs a different MCLK/PLL setup
 - Power management features are disabled in the kernel config

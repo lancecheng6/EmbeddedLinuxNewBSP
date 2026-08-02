@@ -1,20 +1,9 @@
-# Minimal Buildroot config for ATK-IMX6U
-# Base: freescale_imx6ullevk_defconfig
-# Only toolchain + rootfs (kernel/u-boot built manually)
-
 BR2_arm=y
 BR2_cortex_a7=y
 BR2_ARM_FPU_NEON_VFPV4=y
-BR2_TOOLCHAIN_BUILDROOT=y
-BR2_KERNEL_HEADERS_6_6=y
-# BR2_LINUX_KERNEL is not set
-# BR2_TARGET_UBOOT is not set
-
-# SSH server (small build uses bundled libtom, disables zlib)
-BR2_PACKAGE_DROPBEAR=y
-BR2_PACKAGE_DROPBEAR_SMALL=y
-
-# System config
 BR2_TARGET_GENERIC_HOSTNAME="ATK"
-BR2_SYSTEM_DHCP=""
 BR2_ROOTFS_OVERLAY="board/atk-imx6u/rootfs-overlay"
+BR2_PACKAGE_ALSA_UTILS=y
+BR2_PACKAGE_ALSA_UTILS_AMIXER=y
+BR2_PACKAGE_ALSA_UTILS_APLAY=y
+BR2_PACKAGE_DROPBEAR=y
