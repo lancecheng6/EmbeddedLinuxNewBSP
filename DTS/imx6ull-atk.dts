@@ -45,6 +45,34 @@
 			"Mic Jack", "MICB",
 			"AMIC", "MICB";
 	};
+
+	panel_dpi: panel-dpi {
+		compatible = "panel-dpi";
+		width-mm = <154>;
+		height-mm = <86>;
+
+		panel-timing {
+			clock-frequency = <51200000>;
+			hactive = <1024>;
+			vactive = <600>;
+			hfront-porch = <160>;
+			hback-porch = <140>;
+			hsync-len = <20>;
+			vback-porch = <20>;
+			vfront-porch = <12>;
+			vsync-len = <3>;
+			hsync-active = <0>;
+			vsync-active = <0>;
+			de-active = <1>;
+			pixelclk-active = <0>;
+		};
+
+		port {
+			panel_in: endpoint {
+				remote-endpoint = <&lcdif_out>;
+			};
+		};
+	};
 };
 
 /* 序列埠（UART1 / ttymxc0 / COM7） */
@@ -56,6 +84,12 @@
 &usdhc2 {
 	status = "okay";
 	non-removable;
+};
+
+/* SD 卡槽（usdhc1）：改用不含 GPIO1_IO09（CT_INT）的 pinctrl */
+&usdhc1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc1_atk>;
 };
 
 /* UART2（ttymxc1）：移除 RTS/CTS 以釋放腳位給 UART3 */
@@ -115,6 +149,12 @@
 			MX6ULL_PAD_SNVS_TAMPER4__GPIO5_IO04	0x17059
 		>;
 	};
+
+	pinctrl_tsc_reset: tsc_resetgrp {
+		fsl,pins = <
+			MX6ULL_PAD_SNVS_TAMPER9__GPIO5_IO09	0x17059
+		>;
+	};
 };
 
 /* 關閉 spi-4（bitbang SPI），它佔用了 PHY reset 用的 GPIO5_IO07/IO08 */
@@ -152,6 +192,70 @@
 		fsl,pins = <
 			MX6UL_PAD_UART4_TX_DATA__I2C1_SCL	0x4001b8b0
 			MX6UL_PAD_UART4_RX_DATA__I2C1_SDA	0x4001b8b0
+		>;
+	};
+
+	pinctrl_lcdif_dat_atk: lcdifdatgrpatk {
+		fsl,pins = <
+			MX6UL_PAD_LCD_DATA00__LCDIF_DATA00	0x49
+			MX6UL_PAD_LCD_DATA01__LCDIF_DATA01	0x49
+			MX6UL_PAD_LCD_DATA02__LCDIF_DATA02	0x49
+			MX6UL_PAD_LCD_DATA03__LCDIF_DATA03	0x49
+			MX6UL_PAD_LCD_DATA04__LCDIF_DATA04	0x49
+			MX6UL_PAD_LCD_DATA05__LCDIF_DATA05	0x49
+			MX6UL_PAD_LCD_DATA06__LCDIF_DATA06	0x49
+			MX6UL_PAD_LCD_DATA07__LCDIF_DATA07	0x49
+			MX6UL_PAD_LCD_DATA08__LCDIF_DATA08	0x49
+			MX6UL_PAD_LCD_DATA09__LCDIF_DATA09	0x49
+			MX6UL_PAD_LCD_DATA10__LCDIF_DATA10	0x49
+			MX6UL_PAD_LCD_DATA11__LCDIF_DATA11	0x49
+			MX6UL_PAD_LCD_DATA12__LCDIF_DATA12	0x49
+			MX6UL_PAD_LCD_DATA13__LCDIF_DATA13	0x49
+			MX6UL_PAD_LCD_DATA14__LCDIF_DATA14	0x49
+			MX6UL_PAD_LCD_DATA15__LCDIF_DATA15	0x49
+			MX6UL_PAD_LCD_DATA16__LCDIF_DATA16	0x49
+			MX6UL_PAD_LCD_DATA17__LCDIF_DATA17	0x49
+			MX6UL_PAD_LCD_DATA18__LCDIF_DATA18	0x49
+			MX6UL_PAD_LCD_DATA19__LCDIF_DATA19	0x49
+			MX6UL_PAD_LCD_DATA20__LCDIF_DATA20	0x49
+			MX6UL_PAD_LCD_DATA21__LCDIF_DATA21	0x49
+			MX6UL_PAD_LCD_DATA22__LCDIF_DATA22	0x49
+			MX6UL_PAD_LCD_DATA23__LCDIF_DATA23	0x49
+		>;
+	};
+
+	pinctrl_lcdif_ctrl_atk: lcdifctrlgrpatk {
+		fsl,pins = <
+			MX6UL_PAD_LCD_CLK__LCDIF_CLK		0x49
+			MX6UL_PAD_LCD_ENABLE__LCDIF_ENABLE	0x49
+			MX6UL_PAD_LCD_HSYNC__LCDIF_HSYNC	0x49
+			MX6UL_PAD_LCD_VSYNC__LCDIF_VSYNC	0x49
+		>;
+	};
+
+	pinctrl_pwm1: pwm1grp {
+		fsl,pins = <
+			MX6UL_PAD_GPIO1_IO08__PWM1_OUT	0x110b0
+		>;
+	};
+
+	pinctrl_tsc: tscgrp {
+		fsl,pins = <
+			MX6UL_PAD_GPIO1_IO09__GPIO1_IO09	0x1b0b0
+		>;
+	};
+
+	/* 官方 EVK 的 usdhc1 用 GPIO1_IO09 當 SD1 RESET → 本板該腳是 CT_INT（GT911）→ 移除 */
+	pinctrl_usdhc1_atk: usdhc1grpatk {
+		fsl,pins = <
+			MX6UL_PAD_SD1_CMD__USDHC1_CMD	0x17059
+			MX6UL_PAD_SD1_CLK__USDHC1_CLK	0x10071
+			MX6UL_PAD_SD1_DATA0__USDHC1_DATA0 0x17059
+			MX6UL_PAD_SD1_DATA1__USDHC1_DATA1 0x17059
+			MX6UL_PAD_SD1_DATA2__USDHC1_DATA2 0x17059
+			MX6UL_PAD_SD1_DATA3__USDHC1_DATA3 0x17059
+			MX6UL_PAD_UART1_RTS_B__GPIO1_IO19 0x17059 /* SD1 CD */
+			MX6UL_PAD_GPIO1_IO05__USDHC1_VSELECT 0x17059 /* SD1 VSELECT */
 		>;
 	};
 };
@@ -199,4 +303,50 @@
 /* 官方 dtsi 的 codec 在 i2c2（本板未接 WM8960）→ 禁用避免誤 probe */
 &codec {
 	status = "disabled";
+};
+
+/* ─────────── GT911 觸摸（I2C2）─────────── */
+// GT911G（ATK-MD0700R）：I2C2 = F17(SCL)/G13(SDA) = UART5_TXD/RXD
+//   CT_INT = GPIO1_IO09（M15），CT_RST = GPIO5_IO09（SNVS_TAMPER9，R6）
+//   I2C 地址 = 0x14（i2cdetect 實測）
+
+&i2c2 {
+	gt911: gt911@14 {
+		compatible = "goodix,gt911";
+		reg = <0x14>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_tsc
+			     &pinctrl_tsc_reset>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <9 IRQ_TYPE_EDGE_FALLING>;
+		reset-gpios = <&gpio5 9 GPIO_ACTIVE_LOW>;
+		edge-failling-trigger;
+		touchscreen-size-x = <1024>;
+		touchscreen-size-y = <600>;
+		status = "okay";
+	};
+};
+
+/* ─────────── LCD 顯示（ATK-MD0700R 7" 1024x600 RGB888）─────────── */
+// LCDIF：DATA00-23 + CLK/ENABLE/HSYNC/VSYNC（SGM3157 → 0x49）
+// PWM1：GPIO1_IO08 → BLT_PWM 背光（200Hz）
+// RESET（Pin40）= UM805RE POR IC 輸出 → 不接 SoC
+
+&lcdif {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_lcdif_dat_atk
+		     &pinctrl_lcdif_ctrl_atk>;
+	status = "okay";
+
+	port {
+		lcdif_out: endpoint {
+			remote-endpoint = <&panel_in>;
+		};
+	};
+};
+
+&pwm1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm1>;
+	status = "okay";
 };
