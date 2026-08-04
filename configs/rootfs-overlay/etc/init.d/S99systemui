@@ -1,0 +1,15 @@
+#!/bin/sh
+case "$1" in
+	start)
+		echo "Starting SystemUI..."
+		export QT_QPA_PLATFORM=linuxfb
+		cd /opt/ui
+		./systemui &
+		;;
+	stop)
+		killall systemui 2>/dev/null
+		;;
+	*)
+		;;
+esac
+exit 0

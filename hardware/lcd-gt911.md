@@ -116,6 +116,35 @@ The stock NXP EVK DTS uses `GPIO1_IO09` as **SD1 RESET** in
 `pinctrl_usdhc1`. On this board the pin is **CT_INT**, so a custom
 `pinctrl_usdhc1_atk` group (without GPIO1_IO09) is applied to `&usdhc1`.
 
+### 3.3 Display Noise Fix (2026-08-03)
+
+**Symptom:** colored dots (white/yellow) on image lines + text jittering
+horizontally.
+
+**Debug method (systematic exclusion):**
+
+| Test | Result | Conclusion |
+|------|--------|-----------|
+| Solid red written to fb0 | clean | LCD/fb fine |
+| BMP pixel analysis (isolated/yellow dots) | clean | image fine |
+| 8-px checkerboard (high-contrast edges) | clean | block-level sampling OK |
+| **fb0 screenshot captured → viewed on PC** | **clean** | **software rendering 100% fine** |
+
+→ The framebuffer content is perfect but the physical screen shows dots:
+corruption happens **between eLCDIF and the LCD driver IC** — PCLK sampling
+edge / signal-integrity during rapid data transitions (crosstalk, slew).
+
+**Fix (two-stage):**
+
+| Attempt | Change | Result |
+|---------|--------|--------|
+| 1. Invert PCLK sampling edge | `pixelclk-active = <0>` → `<1>` | ~50% improvement; **jitter gone** |
+| 2. Stronger pad drive + SRE | LCDIF dat/ctrl pinctrl `0x49` → `0x1b0b0` | **fully clean** |
+
+Note: `0x49` is the manual's SGM3157-recommended low drive; combined with
+`pixelclk-active=<1>` (sampling phase off the unstable transition zone) and
+`0x1b0b0` (faster slew, stronger drive) the edges are sharp enough.
+
 ---
 
 ## 4. Verification Summary

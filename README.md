@@ -63,7 +63,9 @@ GitHubUpload/
 │   ├── DevLog_20260801.md             English dev log (Day 6: WM8960 audio + playback)
 │   ├── 歷程紀錄_20260801.md            Chinese dev log (Day 6)
 │   ├── DevLog_20260802.md             English dev log (Day 7: LCD display + GT911 touch)
-│   └── 歷程紀錄_20260802.md            Chinese dev log (Day 7)
+│   ├── 歷程紀錄_20260802.md            Chinese dev log (Day 7)
+│   ├── DevLog_20260803.md             English dev log (Day 8: SystemUI + buildroot Qt5)
+│   └── 歷程紀錄_20260803.md            Chinese dev log (Day 8)
 └── hardware/
     ├── imx6ull-sr8201f-interface.md  Ethernet PHY wiring doc
     ├── lcd-gt911.md                  LCD 40-pin + GT911 touch wiring doc
@@ -220,9 +222,37 @@ Key notes:
   by DRM fbdev emulation).
 - LCDIF pinctrl uses **`0x49`** (SGM3157 analog switches on DATA7/15/23).
 - GT911 probe the I2C bus first: `i2cdetect -y -r 1` → found at `0x14`.
+- Display noise fix (colored dots on edges + text jitter): invert the PCLK
+  sampling edge (`pixelclk-active = <1>`) and raise the LCDIF pad drive /
+  slew rate (pinctrl `0x1b0b0`). See `docs/DevLog_20260803.md` §7.
 
 See `hardware/lcd-gt911.md` for the full wiring doc and
 `docs/DevLog_20260802.md` for the debug journey.
+
+### SystemUI (Qt5 Desktop)
+
+The factory **systemui** (QML + C++) desktop runs on a Buildroot-built Qt 5.15
+(no GL — software rendering on Linuxfb):
+
+- **Qt5 packages** (buildroot fragment): `qt5base` (+linuxfb, +png, +jpeg),
+  `qt5declarative`, `qt5quickcontrols2`, `qt5remoteobjects`
+  (plus `BR2_TOOLCHAIN_BUILDROOT_CXX=y`).
+- **Auto-start**: `/etc/init.d/S99systemui` launches
+  `QT_QPA_PLATFORM=linuxfb /opt/ui/systemui` at boot.
+- **Deployment layout** (mirrors the factory `/opt/ui`):
+  - `systemui` binary → `/opt/ui/systemui`
+  - apps → `/opt/ui/src/apps/<name>` (launched by cfg column 3)
+  - icons → `/opt/ui/src/appicons/*.png`
+  - displayed apps → `/opt/ui/src/ATK/apk1~3.cfg` (page1 / page2 / Dock)
+- **Currently deployed**: `led` (page 1) and `clock` (page 2), both also in
+  the bottom Dock.
+- **Porting notes** (Qt 5.6-era source → 5.15): removed unused
+  `QtGraphicalEffects` imports and the GL-only `OpacityMask`/`FuzzPanel`
+  blocks; background image converted to BMP (before PNG support was added);
+  Chinese fonts (wqy-zenhei) shipped in the rootfs overlay.
+
+See `docs/DevLog_20260803.md` for the full journey (Qt5 build, U-Boot rescue,
+display noise fix, app deployment, PNG/JPEG enablement).
 
 ### RS-485 (UART3)
 
@@ -280,6 +310,7 @@ This project was built incrementally across multiple development sessions:
 | Jul 31 | Power chain analysis + U-Boot network fix: custom U-Boot DTS, UUU crash recovery, phy-reset cross-wiring fix, SR8201F PHY ID verified (0x001CC816), `CONFIG_NET_RANDOM_ETHADDR`, ping OK |
 | Aug 01 | WM8960 audio codec study + Linux playback: SAI2/I2C1 wiring verified, ALSA stack (fsl-sai + fsl-asoc-card + wm8960 + SDMA firmware), mixer auto-restore, `aplay` → speaker OK |
 | Aug 02 | ATK-MD0700R 7" LCD display + GT911 touch: pin mapping verified (SGM3157 / UM805RE), DRM mxsfb + panel-dpi graph, pwm-backlight, `CONFIG_FB_DEVICE` fix for /dev/fb0, GT911 on I2C2 (0x14), touch events OK |
+| Aug 03 | SystemUI on Buildroot Qt5: Qt 5.15 env (C++ toolchain + 4 packages), systemui ported & compiled, display noise fixed (`pixelclk-active=1` + pinctrl `0x1b0b0`), led/clock apps + Dock deployed, PNG/JPEG image support (QtGui-built-in PNG, JPEG plugin) |
 
 See the `docs/` folder for detailed development logs. Each session documents the
 problems encountered and the solutions implemented.
@@ -299,4 +330,7 @@ problems encountered and the solutions implemented.
   mxsfb driver needs the graph (port → panel-dpi) binding
 - Touch: GT911 is at I2C2 address `0x14`; do **not** combine `interrupts`
   with `irq-gpios` on the same GPIO (gpiochip IRQ lock → `-EBUSY`)
+- SystemUI: Linuxfb has no vsync (tearing is a platform limitation; reduced
+  with `pixelclk-active=<1>` + pinctrl `0x1b0b0`); Qt 5.15 runs without GL —
+  `QtGraphicalEffects` is unavailable
 - Power management features are disabled in the kernel config
