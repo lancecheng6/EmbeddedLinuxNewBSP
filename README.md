@@ -254,6 +254,30 @@ The factory **systemui** (QML + C++) desktop runs on a Buildroot-built Qt 5.15
 See `docs/DevLog_20260803.md` for the full journey (Qt5 build, U-Boot rescue,
 display noise fix, app deployment, PNG/JPEG enablement).
 
+### WiFi (RTL8188EUS USB Dongle)
+
+A Realtek RTL8188EUS (0bda:8179) USB WiFi dongle connects to **BELL357**
+(WPA2-PSK) automatically at boot:
+
+```bash
+# Auto-connect is handled by /etc/init.d/S50wifi (wait wlan0 → wpa_supplicant
+# → wait operstate=up → udhcpc). /etc/wpa_supplicant.conf holds the network.
+ip addr show wlan0            # 192.168.2.57/24 (DHCP)
+ping -c 3 8.8.8.8             # connectivity check
+```
+
+Key enablement facts:
+- Kernel: `CONFIG_RTL8XXXU=y` (rtl8xxxu driver supports 8188EUS).
+- **regulatory.db + regulatory.db.p7s are embedded into the kernel**
+  (`CONFIG_EXTRA_FIRMWARE`) — rootfs mounts too late for cfg80211 to load
+  them from disk.
+- `rtl8188eufw.bin` (decompressed from `.zst`) in the rootfs overlay.
+- buildroot: `BR2_PACKAGE_WPA_SUPPLICANT=y`.
+- **2.4 GHz only** (RTL8188EUS is 802.11b/g/n); eth0 (192.168.1.100) is
+  untouched — wlan0 is a parallel network.
+
+See `docs/DevLog_20260803.md` §10 for the full WiFi journey.
+
 ### RS-485 (UART3)
 
 UART3 is connected to a TP8485E RS-485 transceiver with automatic direction control:
@@ -310,7 +334,7 @@ This project was built incrementally across multiple development sessions:
 | Jul 31 | Power chain analysis + U-Boot network fix: custom U-Boot DTS, UUU crash recovery, phy-reset cross-wiring fix, SR8201F PHY ID verified (0x001CC816), `CONFIG_NET_RANDOM_ETHADDR`, ping OK |
 | Aug 01 | WM8960 audio codec study + Linux playback: SAI2/I2C1 wiring verified, ALSA stack (fsl-sai + fsl-asoc-card + wm8960 + SDMA firmware), mixer auto-restore, `aplay` → speaker OK |
 | Aug 02 | ATK-MD0700R 7" LCD display + GT911 touch: pin mapping verified (SGM3157 / UM805RE), DRM mxsfb + panel-dpi graph, pwm-backlight, `CONFIG_FB_DEVICE` fix for /dev/fb0, GT911 on I2C2 (0x14), touch events OK |
-| Aug 03 | SystemUI on Buildroot Qt5: Qt 5.15 env (C++ toolchain + 4 packages), systemui ported & compiled, display noise fixed (`pixelclk-active=1` + pinctrl `0x1b0b0`), led/clock apps + Dock deployed, PNG/JPEG image support (QtGui-built-in PNG, JPEG plugin) |
+| Aug 03 | SystemUI on Buildroot Qt5: Qt 5.15 env (C++ toolchain + 4 packages), systemui ported & compiled, display noise fixed (`pixelclk-active=1` + pinctrl `0x1b0b0`), led/clock apps + Dock deployed, PNG/JPEG image support (QtGui-built-in PNG, JPEG plugin), USB WiFi (RTL8188EUS) enabled: driver + embedded regulatory.db/p7s + wpa_supplicant, auto-connect BELL357 → 192.168.2.57 |
 
 See the `docs/` folder for detailed development logs. Each session documents the
 problems encountered and the solutions implemented.
@@ -333,4 +357,7 @@ problems encountered and the solutions implemented.
 - SystemUI: Linuxfb has no vsync (tearing is a platform limitation; reduced
   with `pixelclk-active=<1>` + pinctrl `0x1b0b0`); Qt 5.15 runs without GL —
   `QtGraphicalEffects` is unavailable
+- WiFi: RTL8188EUS is **2.4 GHz only** (5 GHz APs invisible); regulatory.db +
+  .p7s must be **embedded into the kernel** (`CONFIG_EXTRA_FIRMWARE`) because
+  rootfs mounts after cfg80211 initializes
 - Power management features are disabled in the kernel config
